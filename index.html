@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TaskFlow - Task Manager</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css"
+    />
+    <style></style>
+  </head>
+  <body>
+    <!-- SVG Icons -->
+    <svg style="display: none">
+      <symbol id="flag-low" viewBox="0 0 24 24">
+        <path
+          d="M5 4v16M5 4h13l-1.5 4L18 12H5"
+          stroke="green"
+          stroke-width="2"
+          fill="green"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </symbol>
+      <symbol id="flag-medium" viewBox="0 0 24 24">
+        <path
+          d="M5 4v16M5 4h13l-1.5 4L18 12H5"
+          stroke="yellow"
+          stroke-width="2"
+          fill="yellow"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </symbol>
+      <symbol id="flag-high" viewBox="0 0 24 24">
+        <path
+          d="M5 4v16M5 4h13l-1.5 4L18 12H5"
+          stroke="red"
+          stroke-width="2"
+          fill="red"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </symbol>
+      <symbol id="calendar" viewBox="0 -960 960 960">
+        <path
+          d="M200-640h560v-80H200v80Zm0 0v-80 80Zm0 560q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v227q-19-9-39-15t-41-9v-43H200v400h252q7 22 16.5 42T491-80H200Zm520 40q-83 0-141.5-58.5T520-240q0-83 58.5-141.5T720-440q83 0 141.5 58.5T920-240q0 83-58.5 141.5T720-40Zm67-105 28-28-75-75v-112h-40v128l87 87Z"
+          stroke="white"
+          fill="white"
+        />
+      </symbol>
+      <symbol id="tag" viewBox="0 -960 960 960">
+        <path
+          d="m240-160 40-160H120l20-80h160l40-160H180l20-80h160l40-160h80l-40 160h160l40-160h80l-40 160h160l-20 80H660l-40 160h160l-20 80H600l-40 160h-80l40-160H360l-40 160h-80Zm140-240h160l40-160H420l-40 160Z"
+          fill="white"
+        />
+      </symbol>
+      <symbol id="addtolist" viewBox="0 -960 960 960">
+        <path
+          d="M680-40v-120H560v-80h120v-120h80v120h120v80H760v120h-80ZM200-200v-560 560Zm0 80q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v353q-18-11-38-18t-42-11v-324H200v560h280q0 21 3 41t10 39H200Zm120-160q17 0 28.5-11.5T360-320q0-17-11.5-28.5T320-360q-17 0-28.5 11.5T280-320q0 17 11.5 28.5T320-280Zm0-160q17 0 28.5-11.5T360-480q0-17-11.5-28.5T320-520q-17 0-28.5 11.5T280-480q0 17 11.5 28.5T320-440Zm0-160q17 0 28.5-11.5T360-640q0-17-11.5-28.5T320-680q-17 0-28.5 11.5T280-640q0 17 11.5 28.5T320-600Zm120 160h240v-80H440v80Zm0-160h240v-80H440v80Zm0 320h54q8-23 20-43t28-37H440v80Z"
+          fill="white"
+        />
+      </symbol>
+      <symbol id="attach" viewBox="0 -960 960 960">
+        <path
+          d="M640-520v-200h80v200h-80ZM440-244q-35-10-57.5-39T360-350v-370h80v476Zm30 164q-104 0-177-73t-73-177v-370q0-75 52.5-127.5T400-880q75 0 127.5 52.5T580-700v300h-80v-300q-1-42-29.5-71T400-800q-42 0-71 29t-29 71v370q-1 71 49 120.5T470-160q25 0 47.5-6.5T560-186v89q-21 8-43.5 12.5T470-80Zm170-40v-120H520v-80h120v-120h80v120h120v80H720v120h-80Z"
+          fill="white"
+        />
+      </symbol>
+    </svg>
+
+    <!-- Main Content -->
+    <header class="main-content">
+      <div class="task-input-container">
+        <input
+          type="text"
+          class="task-input"
+          placeholder="What needs to be done?"
+          id="taskInput"
+          autocomplete="off"
+        />
+
+        <div class="dock" id="dock">
+          <!-- Priority Selector -->
+          <div class="dock-item priority-selector" id="prioritySelector">
+            <svg><use href="#flag-low"></use></svg>
+          </div>
+
+          <div class="priority-dropdown" id="priorityDropdown">
+            <div class="priority-option low"
+              style="border-top-right-radius: 8px; border-top-left-radius: 8px"
+              id="low"
+            >
+              <svg><use href="#flag-low"></use></svg>
+              <span>Low</span>
+            </div>
+            <div class="priority-option medium" id="medium">
+              <svg><use href="#flag-medium"></use></svg>
+              <span>Medium</span>
+            </div>
+            <div class="priority-option high"
+              style="
+                border-bottom-left-radius: 8px;
+                border-bottom-right-radius: 8px;
+              "
+              id="high"
+            >
+              <svg><use href="#flag-high"></use></svg>
+              <span>High</span>
+            </div>
+          </div>
+          <!-- Calendar Button -->
+          <input type="hidden" id="calendarInput" class="display: none;" />
+          <div class="dock-item" id="calendarBtn">
+            <svg><use href="#calendar"></use></svg>
+          </div>
+
+          <!-- Tag button-->
+          <div class="dock-item tag-btn" id="tagBtn">
+            <svg><use href="#tag"></use></svg>
+          </div>
+          <div class="tag-element" id="tagElement">
+            <input
+              type="text"
+              name="tag"
+              id="tagInput"
+              class="tag-input"
+              placeholder="Add a new Tag"
+              autocomplete="off"
+            />
+            <button class="tag-add-btn" id="tagAddBtn">Add Tag</button>
+          </div>
+
+          <!-- Add to List Button -->
+          <div class="dock-item" id="addToListBtn">
+            <svg><use href="#addtolist"></use></svg>
+          </div>
+
+          <div class="listDropdown" id="listDropdown"></div>
+
+          <!-- Add Task Button -->
+          <button class="add-task-btn" id="addTaskBtn">Add Task</button>
+        </div>
+      </div>
+    </header>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
