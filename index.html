@@ -13,7 +13,11 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css"
     />
-    <style></style>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css"
+      type="text/css"
+    />
   </head>
   <body>
     <!-- SVG Icons -->
@@ -78,13 +82,9 @@
     <!-- Main Content -->
     <header class="main-content">
       <div class="task-input-container">
-        <input
-          type="text"
-          class="task-input"
-          placeholder="What needs to be done?"
-          id="taskInput"
-          autocomplete="off"
-        />
+        <input type="text" class="task-input" placeholder="What needs to be done?" id="taskInput" autocomplete="off"/>
+        <div class="tag-display" id="tagDisplay"></div>
+
 
         <div class="dock" id="dock">
           <!-- Priority Selector -->
@@ -93,10 +93,7 @@
           </div>
 
           <div class="priority-dropdown" id="priorityDropdown">
-            <div class="priority-option low"
-              style="border-top-right-radius: 8px; border-top-left-radius: 8px"
-              id="low"
-            >
+            <div class="priority-option low" style="border-top-right-radius: 8px; border-top-left-radius: 8px" id="low">
               <svg><use href="#flag-low"></use></svg>
               <span>Low</span>
             </div>
@@ -104,36 +101,26 @@
               <svg><use href="#flag-medium"></use></svg>
               <span>Medium</span>
             </div>
-            <div class="priority-option high"
-              style="
-                border-bottom-left-radius: 8px;
-                border-bottom-right-radius: 8px;
-              "
-              id="high"
-            >
+            <div class="priority-option high" style="border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;" id="high">
               <svg><use href="#flag-high"></use></svg>
               <span>High</span>
             </div>
           </div>
+
+
           <!-- Calendar Button -->
           <input type="hidden" id="calendarInput" class="display: none;" />
           <div class="dock-item" id="calendarBtn">
             <svg><use href="#calendar"></use></svg>
           </div>
 
+
           <!-- Tag button-->
           <div class="dock-item tag-btn" id="tagBtn">
             <svg><use href="#tag"></use></svg>
           </div>
           <div class="tag-element" id="tagElement">
-            <input
-              type="text"
-              name="tag"
-              id="tagInput"
-              class="tag-input"
-              placeholder="Add a new Tag"
-              autocomplete="off"
-            />
+            <input type="text" name="tag" id="tagInput" class="tag-input" placeholder="Add a new Tag" autocomplete="off"/>
             <button class="tag-add-btn" id="tagAddBtn">Add Tag</button>
           </div>
 
@@ -141,8 +128,6 @@
           <div class="dock-item" id="addToListBtn">
             <svg><use href="#addtolist"></use></svg>
           </div>
-
-          <div class="listDropdown" id="listDropdown"></div>
 
           <!-- Add Task Button -->
           <button class="add-task-btn" id="addTaskBtn">Add Task</button>
