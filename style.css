@@ -196,15 +196,14 @@ body {
 }
 .tag-element{
   position: absolute;
-  top: calc(100% + 1.3rem);
-  left: 35%;
-  transform: translateX(-50%);
+  top: calc(100% + 0.5rem);
+  left: calc(88px + 0.75rem + 0.75rem + 0.75rem);
   display: none;
 }
 .tag-element.visible {
   display: flex;
 }
-.tag-add-btn, .tag-input {
+.tag-add-btn, .tag-input , .new-list-input{
   box-sizing: border-box;
   padding: 0.4rem;
   outline: none;
@@ -233,6 +232,80 @@ body {
 .tag-add-btn:active{
   background-color: #187512;
 }
+.list-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: calc(3*44px + 5*0.75rem);
+  
+}
+.list-dropdown.visible {
+  display: block;
+  z-index: 20;
+  
+}
+.list-name-display {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  cursor: pointer;
+  margin-bottom: 0.2rem;
+}
+.list-options{
+  background-color: var(--bg-dock);
+  border-radius: 8px;
+  display: none;
+  flex-direction: column;
+  padding: 5px;
+  gap: 0.4rem;
+  border: 1px solid var(--border);
+}
+.list-options.visible{
+  display: flex;
+  max-height: 100px;
+  overflow-y: auto;
+}
+.list-options::-webkit-scrollbar {
+  display: none;
+}
+.list-item{
+  border-bottom: var(--text-secondary);
+  cursor: pointer;
+  text-wrap: nowrap;
+}
+.list-item:hover{
+  background-color: var(--bg-secondary);
+}
+.newList-btn{
+  background-color: var(--accent);
+  align-items: center;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 0.2rem 0.4rem;
+}
+.newList-btn:hover{
+  background-color: #28af1e;
+}
+.newList-btn:active{
+  background-color: #187512;
+}
+.new-list-input{
+  display: none;
+  background-color: var(--bg-input);
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--border-focus);
+  border-radius: 8px;
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+}
+
 /* Add Task Button */
 .add-task-btn {
   position: absolute;
@@ -252,6 +325,7 @@ body {
 .add-task-btn:active {
   background-color: #187512;
 }
+
 
 .flatpickr-calendar.open {
   z-index: 30 !important;

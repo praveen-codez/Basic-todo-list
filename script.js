@@ -6,12 +6,17 @@ const prioritySelector = document.getElementById("prioritySelector");
 const priorityDropdown = document.getElementById("priorityDropdown");
 const calendarBtn = document.getElementById("calendarBtn");
 const calendarInput = document.getElementById("calendarInput");
-const addToListBtn = document.getElementById("addToListBtn");
+const listBtn = document.getElementById("ListBtn");
+const listDropdown = document.getElementById("listDropdown");
+const listNameDisplay = document.getElementById('listNameDisplay')
+const listOptions = document.getElementById("listOptions");
+const newListInput = document.getElementById('newListInput');
 const tagBtn = document.getElementById("tagBtn");
 const tagElement = document.getElementById("tagElement");
 const tagInput = document.getElementById("tagInput");
 const tagAddBtn = document.getElementById("tagAddBtn");
 const tagDisplay = document.getElementById("tagDisplay");
+
 // State Variables
 let currentPriority = "medium";
 let selectedDate = null;
@@ -47,6 +52,12 @@ function closeAllDockItems() {
   tagElement.classList.remove("visible");
   tagBtn.classList.remove("dock-active");
   calendarBtn.classList.remove("dock-active");
+  listBtn.classList.remove('dock-active');
+  listDropdown.classList.remove('visible');
+  // Hide list options and new list input when closing dock items
+  listOptions.classList.remove('visible');
+  newListInput.style.display = 'none'; // ADDED: Hide new list input
+
   activeDockItem = null;
 }
 
@@ -62,37 +73,92 @@ function setActiveDockItem(itemName, element) {
 // Initialize default task lists in local storage if not already present
 function initializeDefaultLists() {
   if (localStorage.getItem("listInitialized") !== "true") {
-    localStorage.setItem("lists", JSON.stringify(["work", "personal", "shopping"]));
+    localStorage.setItem("lists", JSON.stringify(["None", "Personal", "Hobbies", "Work"]));
     localStorage.setItem("listInitialized", "true");
+    selectedList = "work"; // Set a default list
+    listNameDisplay.innerHTML = `<span>work</span> <span>&#10549;</span>`; // Update display
+  } else if (!selectedList) {
+    // If lists are initialized but no list is selected on refresh
+    const lists = JSON.parse(localStorage.getItem("lists"));
+    if (lists.length > 0) {
+      selectedList = lists[0];
+      listNameDisplay.innerHTML = `<span>${selectedList}</span> <span>&#10549;</span>`;
+    }
   }
+  return true;
 }
 
-// Retrieve all tasks from local storage
+initializeDefaultLists();
+
+function renderLists() {
+  listOptions.innerHTML = ''; // Clear previous options
+  const lists = JSON.parse(localStorage.getItem("lists"));
+  
+  lists.forEach((item) => {
+    const listItem = document.createElement("div");
+    listItem.className = 'list-item'
+    listItem.textContent = item;
+    listOptions.appendChild(listItem);
+    listItem.addEventListener("click", (e) => {
+      e.stopPropagation(); // Stop click from propagating to listNameDisplay
+      selectedList = item;
+      listNameDisplay.innerHTML = `<span>${item}</span> <span>&#10549;</span>`;
+      // Close all list-related UI elements
+      listDropdown.classList.remove("visible");
+      listOptions.classList.remove('visible');
+      listBtn.classList.remove('dock-active');
+      activeDockItem = null;
+    });
+  });
+
+  // append the New List button after clearing and rendering list items
+  const newListBtn = document.createElement("button");
+  newListBtn.innerHTML = 'New List';
+  newListBtn.className = 'newList-btn'
+  newListBtn.id = 'newListBtn';
+  listOptions.appendChild(newListBtn);
+
+  newListBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); 
+    listDropdown.classList.remove("visible");
+    listOptions.classList.remove('visible');
+
+    newListInput.value = ''; 
+    newListInput.style.display = 'block';
+    newListInput.focus();
+
+    listBtn.classList.remove('dock-active');
+    activeDockItem = null;
+  });
+}
+
+renderLists();
+
+
+
 function getTasks() {
   const tasks = localStorage.getItem("tasks");
   return tasks ? JSON.parse(tasks) : [];
 }
 
-// Add a new task to local storage
+
 function addTask() {
   const taskObj = {
     name: taskInput.value.trim(),
     priority: currentPriority,
     dueDate: selectedDate,
-    tags: selectedTag,
+    tags: selectedTags, 
     list: selectedList,
   };
   const updatedTasks = [...getTasks(), taskObj];
   localStorage.setItem("tasks", JSON.stringify(updatedTasks));
 }
 
-/* ---------- Event Listeners and Handlers ---------- */
 
-// Show dock on input focus or click
+
 taskInput.addEventListener("focus", showDock);
 taskInput.addEventListener("click", showDock);
 
-// Hide dock when clicking outside related elements
 document.addEventListener("click", (e) => {
   if (
     !taskInput.contains(e.target) &&
@@ -104,7 +170,7 @@ document.addEventListener("click", (e) => {
   }
 });
 
-// Handle priority selector click to toggle dropdown
+
 prioritySelector.addEventListener("click", (e) => {
   e.stopPropagation();
   if (activeDockItem === "priority") {
@@ -112,10 +178,12 @@ prioritySelector.addEventListener("click", (e) => {
   } else {
     setActiveDockItem("priority", prioritySelector);
     priorityDropdown.classList.add("visible");
+    newListInput.style.display = 'none';
+    
   }
 });
 
-// Priority option selection sets current priority and updates icon
+
 document.querySelectorAll(".priority-option").forEach((option) => {
   option.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -125,7 +193,8 @@ document.querySelectorAll(".priority-option").forEach((option) => {
   });
 });
 
-// Toggle tag input visibility and focus
+
+
 tagBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   if (activeDockItem === "tag") {
@@ -134,10 +203,35 @@ tagBtn.addEventListener("click", (e) => {
     setActiveDockItem("tag", tagBtn);
     tagElement.classList.add("visible");
     tagInput.focus();
+    newListInput.style.display = 'none';
   }
 });
 
-// Add tag button to add new tags to selectedTags list
+
+newListInput.addEventListener('keypress', (e) => {
+  if(e.key === 'Enter'){
+    const newListName = newListInput.value.trim();
+    if (newListName) {
+        selectedList = newListName;
+        let lists = JSON.parse(localStorage.getItem('lists'));
+        if (!lists.includes(newListName)) {
+            lists.push(newListName);
+            localStorage.setItem('lists', JSON.stringify(lists));
+        }
+        
+        listNameDisplay.innerHTML = `<span>${newListName}</span> <span>&#10549;</span>`;
+        newListInput.value = '';
+        newListInput.style.display = 'none';
+        
+        
+        renderLists(); 
+        listBtn.classList.add('dock-active');
+    }
+  }
+});
+
+
+
 tagAddBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   const tagValue = tagInput.value.trim();
@@ -171,13 +265,12 @@ function displayTags() {
     tagDisplay.appendChild(tagItem);
   })
 };
-
 function removeTag(tag) {
   selectedTags = selectedTags.filter((t) => t !== tag);
   displayTags();
 };
 
-// Calendar button toggles date picker initialization and visibility
+
 calendarBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   calendarInput.style.display = "none";
@@ -201,43 +294,63 @@ calendarBtn.addEventListener("click", (e) => {
       },
     });
   }
+  newListInput.style.display = 'none'; // ADDED: Hide new list input
   calendarBtn.classList.add("dock-active");
   setActiveDockItem("calendar", calendarBtn);
   flatpickrInstance.open();
 });
 
-// Add task button click validates input, adds task, and resets UI/state
+listBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  // Hide the list input whenever the list button is clicked (to reset)
+  newListInput.style.display = 'none'; // ADDED: Hide new list input
+
+  if (activeDockItem === 'list'){
+    closeAllDockItems();
+  }
+  else{
+    setActiveDockItem('list', listBtn);
+    listDropdown.classList.add('visible');
+    listOptions.classList.add('visible'); // Set listOptions visible by default with listDropdown
+  }
+})
+listNameDisplay.addEventListener('click', (e) => {
+  e.stopPropagation();
+  listOptions.classList.toggle('visible');
+  // Also make sure to hide the new list input if list options are shown
+  if (listOptions.classList.contains('visible')) {
+      newListInput.style.display = 'none';
+  }
+})
+
 addTaskBtn.addEventListener("click", (e) => {
   e.stopPropagation();
-
   if (!taskInput.value.trim()) {
     alert("Task name cannot be empty.");
     taskInput.focus();
     return;
   }
-
   addTask();
 
-  // Reset input and state
   taskInput.value = "";
   selectedDate = null;
   currentPriority = "medium";
   selectedTags = [];
+  displayTags();
+  selectedList = null;
   hideDock();
 
-  // Reset priority icon to default low
   const selectorSvg = prioritySelector.querySelector("svg use");
   selectorSvg.setAttribute("href", "#flag-low");
+  listNameDisplay.innerHTML = `<span>None</span> <span>&#10549;</span>`; // Reset list display
 });
 
-// Add task on pressing Enter key if no dock item is active
+
 taskInput.addEventListener("keypress", (e) => {
   if (e.key === "Enter" && !activeDockItem) {
     addTaskBtn.click();
   }
 });
-
-// Prevent dock clicks from bubbling and closing dock unintentionally
 dock.addEventListener("click", (e) => {
   e.stopPropagation();
 });

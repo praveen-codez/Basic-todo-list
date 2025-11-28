@@ -87,7 +87,8 @@
 
 
         <div class="dock" id="dock">
-          <!-- Priority Selector -->
+
+          
           <div class="dock-item priority-selector" id="prioritySelector">
             <svg><use href="#flag-low"></use></svg>
           </div>
@@ -108,26 +109,33 @@
           </div>
 
 
-          <!-- Calendar Button -->
           <input type="hidden" id="calendarInput" class="display: none;" />
           <div class="dock-item" id="calendarBtn">
             <svg><use href="#calendar"></use></svg>
           </div>
 
 
-          <!-- Tag button-->
           <div class="dock-item tag-btn" id="tagBtn">
             <svg><use href="#tag"></use></svg>
           </div>
           <div class="tag-element" id="tagElement">
-            <input type="text" name="tag" id="tagInput" class="tag-input" placeholder="Add a new Tag" autocomplete="off"/>
-            <button class="tag-add-btn" id="tagAddBtn">Add Tag</button>
+              <input type="text" name="tag" id="tagInput" class="tag-input" placeholder="Add a new Tag" autocomplete="off"/>
+              <button class="tag-add-btn" id="tagAddBtn">Add Tag</button>
           </div>
 
-          <!-- Add to List Button -->
-          <div class="dock-item" id="addToListBtn">
+
+          <div class="dock-item" id="ListBtn">
             <svg><use href="#addtolist"></use></svg>
           </div>
+
+          <div class="list-dropdown" id="listDropdown">
+            <div class="list-name-display" id="listNameDisplay">
+              <span>None</span> <span>&#10549;</span>
+            </div>
+            <div class="list-options" id="listOptions">
+            </div>
+          </div>
+          <input type="text" class="new-list-input" id="newListInput" placeholder="Add new list">
 
           <!-- Add Task Button -->
           <button class="add-task-btn" id="addTaskBtn">Add Task</button>
