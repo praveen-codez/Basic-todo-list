@@ -79,69 +79,135 @@
       </symbol>
     </svg>
 
-    <!-- Main Content -->
-    <header class="main-content">
+    <header class="Task-input-area">
       <div class="task-input-container">
-        <input type="text" class="task-input" placeholder="What needs to be done?" id="taskInput" autocomplete="off"/>
-        <div class="tag-display" id="tagDisplay"></div>
+      <input
+        type="text"
+        class="task-input"
+        placeholder="What needs to be done?"
+        id="taskInput"
+        autocomplete="off"
+      />
+      <div class="tag-display" id="tagDisplay"></div>
 
-
-        <div class="dock" id="dock">
-
-          
-          <div class="dock-item priority-selector" id="prioritySelector">
-            <svg><use href="#flag-low"></use></svg>
-          </div>
-
-          <div class="priority-dropdown" id="priorityDropdown">
-            <div class="priority-option low" style="border-top-right-radius: 8px; border-top-left-radius: 8px" id="low">
-              <svg><use href="#flag-low"></use></svg>
-              <span>Low</span>
-            </div>
-            <div class="priority-option medium" id="medium">
-              <svg><use href="#flag-medium"></use></svg>
-              <span>Medium</span>
-            </div>
-            <div class="priority-option high" style="border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;" id="high">
-              <svg><use href="#flag-high"></use></svg>
-              <span>High</span>
-            </div>
-          </div>
-
-
-          <input type="hidden" id="calendarInput" class="display: none;" />
-          <div class="dock-item" id="calendarBtn">
-            <svg><use href="#calendar"></use></svg>
-          </div>
-
-
-          <div class="dock-item tag-btn" id="tagBtn">
-            <svg><use href="#tag"></use></svg>
-          </div>
-          <div class="tag-element" id="tagElement">
-              <input type="text" name="tag" id="tagInput" class="tag-input" placeholder="Add a new Tag" autocomplete="off"/>
-              <button class="tag-add-btn" id="tagAddBtn">Add Tag</button>
-          </div>
-
-
-          <div class="dock-item" id="ListBtn">
-            <svg><use href="#addtolist"></use></svg>
-          </div>
-
-          <div class="list-dropdown" id="listDropdown">
-            <div class="list-name-display" id="listNameDisplay">
-              <span>None</span> <span>&#10549;</span>
-            </div>
-            <div class="list-options" id="listOptions">
-            </div>
-          </div>
-          <input type="text" class="new-list-input" id="newListInput" placeholder="Add new list">
-
-          <!-- Add Task Button -->
-          <button class="add-task-btn" id="addTaskBtn">Add Task</button>
+      <div class="dock" id="dock">
+        <div class="dock-item priority-selector" id="prioritySelector">
+          <svg><use href="#flag-low"></use></svg>
         </div>
+
+        <div class="priority-dropdown" id="priorityDropdown">
+          <div
+            class="priority-option low"
+            style="border-top-right-radius: 8px; border-top-left-radius: 8px"
+            id="low"
+          >
+            <svg><use href="#flag-low"></use></svg>
+            <span>Low</span>
+          </div>
+          <div class="priority-option medium" id="medium">
+            <svg><use href="#flag-medium"></use></svg>
+            <span>Medium</span>
+          </div>
+          <div
+            class="priority-option high"
+            style="
+              border-bottom-left-radius: 8px;
+              border-bottom-right-radius: 8px;
+            "
+            id="high"
+          >
+            <svg><use href="#flag-high"></use></svg>
+            <span>High</span>
+          </div>
+        </div>
+
+        <input type="hidden" id="calendarInput" class="display: none;" />
+        <div class="dock-item" id="calendarBtn">
+          <svg><use href="#calendar"></use></svg>
+        </div>
+
+        <div class="dock-item tag-btn" id="tagBtn">
+          <svg><use href="#tag"></use></svg>
+        </div>
+        <div class="tag-element" id="tagElement">
+          <input
+            type="text"
+            name="tag"
+            id="tagInput"
+            class="tag-input"
+            placeholder="Add a new Tag"
+            autocomplete="off"
+          />
+          <button class="tag-add-btn" id="tagAddBtn">Add Tag</button>
+        </div>
+
+        <div class="dock-item" id="ListBtn">
+          <svg><use href="#addtolist"></use></svg>
+        </div>
+
+        <div class="list-dropdown" id="listDropdown">
+          <div class="list-name-display" id="listNameDisplay">
+            <span>None</span> <span>&#10549;</span>
+          </div>
+          <div class="list-options" id="listOptions"></div>
+        </div>
+        <input
+          type="text"
+          class="new-list-input"
+          id="newListInput"
+          placeholder="Add new list"
+        />
+
+        <!-- Add Task Button -->
+        <button class="add-task-btn" id="addTaskBtn">Add Task</button>
+      </div>
       </div>
     </header>
+
+    <main class="main-layout">
+      <nav class="navbar">
+        <ul>
+          <li class="active">All Tasks</li>
+          <li>Today</li>
+          <li>This Week</li>
+          <li>Habits</li>
+          <li>Completed</li>
+        </ul>
+      </nav>
+
+      <section class="content-area">
+        <div class="task-toolbar">
+          <div class="toolbar-actions">
+            <select id="listSelect"></select>
+            </select>
+            <button class="btn-secondary">
+              <span>Sort</span>
+            </button>
+          </div>
+
+          <div class="search-wrapper">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+              type="search"
+              placeholder="Search tasks..."
+              class="search-input"
+            />
+          </div>
+        </div>
+
+        <div class="task-list-container" id="taskDisplayWindow">
+          <div class="empty-state-placeholder">No tasks found</div>
+        </div>
+      </section>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="script.js"></script>
