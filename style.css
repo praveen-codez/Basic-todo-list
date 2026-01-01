@@ -20,10 +20,13 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
     Ubuntu, Cantarell, sans-serif;
-  background-color: var(--bg-primary);
+  background: linear-gradient(135deg, #071033 0%, #0f0f0f 45%, #102030 100%);
   color: var(--text-primary);
-  min-height: 100vh;
-  overflow-x: hidden;
+  height: 100vh;
+  top: 0;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
 }
 
 /* Main Content */
@@ -329,40 +332,6 @@ body {
   z-index: 30 !important;
 }
 
-/* .navbar{
-  position: fixed;
-  top: 16rem;
-  border: white solid;
-  background-color: var(--bg-primary);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  align-items: space-around;
-}
-.navbar > ul{
-  padding: 1rem;
-}
-.navbar > ul > li{
-  list-style-type: none;
-  margin-bottom: 2rem ;
-  color: var(--text-secondary);
-}
-.navbar > ul > li:hover{
-  color: var(--text-primary);
-  cursor: pointer;
-}
-
-.taskDisplayWindow{
-  position: relative;
-  left: 8rem;
-  top: 16rem;
-  background-color: #187512;
-  width: 10px;
-  height: 10px;
-
-} */
-
-
 .main-layout {
   display: grid;
   grid-template-columns: 240px 1fr;
@@ -424,6 +393,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding-bottom: 0.5rem;
+  flex-direction: row-reverse;
 }
 
 .toolbar-actions {
@@ -431,7 +401,7 @@ body {
   gap: 0.75rem;
 }
 
-
+/* 
 .btn-secondary {
   background-color: var(--bg-dock);
   border: 1px solid var(--border);
@@ -444,7 +414,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-}
+} */
 
 .btn-secondary:hover {
   border-color: var(--text-secondary);
@@ -490,20 +460,21 @@ body {
 }
 
 .task-list-container {
-  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
   background-color: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1.5rem;
   overflow-y: auto;
   box-shadow: 0 4px 6px var(--shadow);
-  position: static;
+  position: relative;
   width: auto;
-  height: auto;
+  height: calc(100vh - 16rem);
 }
 
 .task-list-container::-webkit-scrollbar {
-  width: 8px;
+  width: 1px;
 }
 
 .task-list-container::-webkit-scrollbar-track {
@@ -520,4 +491,134 @@ body {
   text-align: center;
   margin-top: 2rem;
   font-style: italic;
+}
+
+/* Task Card Styling */
+.task-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  transition: all 0.2s ease;
+  height: auto;
+  min-height: 60px;
+}
+
+.task-card:hover {
+  border-color: var(--border-focus);
+  background-color: var(--bg-secondary);
+}
+
+.task-checkbox {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  cursor: pointer;
+  accent-color: var(--accent);
+  flex-shrink: 0;
+}
+
+.task-top-section {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex: 1;
+  justify-content: space-between;
+}
+
+.task-name-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.task-name {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.task-tags-container {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.task-tag {
+  display: inline-block;
+  background-color: var(--accent);
+  color: white;
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.task-metadata-container {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.task-priority {
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.priority-high {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.priority-medium {
+  background-color: rgba(234, 179, 8, 0.2);
+  color: #eab308;
+}
+
+.priority-low {
+  background-color: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+}
+
+.task-list {
+  padding: 0.25rem 0.6rem;
+  background-color: var(--bg-dock);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.task-due-date-container {
+  display: flex;
+  align-items: center;
+  padding-left: 0.5rem;
+  flex-shrink: 0;
+}
+
+.task-due-date {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
 }

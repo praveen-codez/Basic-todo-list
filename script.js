@@ -1,3 +1,5 @@
+
+
 /* ========== DOM ELEMENT REFERENCES ========== */
 const DOM = {
   taskInput: document.getElementById("taskInput"),
@@ -18,6 +20,8 @@ const DOM = {
   tagAddBtn: document.getElementById("tagAddBtn"),
   tagDisplay: document.getElementById("tagDisplay"),
   listSelect: document.getElementById("listSelect"),
+  navItems: document.querySelectorAll(".navbar > ul > li"),
+  taskToolbar: document.querySelector(".task-toolbar"),
 };
 
 /* ========== STATE MANAGEMENT ========== */
@@ -33,8 +37,8 @@ const state = {
 /* ========== CONSTANTS ========== */
 const DEFAULTS = {
   lists: ["None", "Personal", "Hobbies", "Work"],
-  defaultList: "work",
-  maxTags: 5,
+  defaultList: "None",
+  maxTags: 2,
 };
 
 const CLASSES = {
@@ -54,345 +58,199 @@ const SELECTORS = {
   priorityFlag: "#flag-",
 };
 
-/* ========== UTILITY FUNCTIONS ========== */
+/* ========== BEHAVIOR IMPLEMENTATION ========== */
 
-/**
- * Toggle visibility of an element
- */
-function toggleElementVisibility(element, shouldShow) {
-  if (shouldShow === undefined) {
-    element.classList.toggle(CLASSES.visible);
-  } else {
-    shouldShow
-      ? element.classList.add(CLASSES.visible)
-      : element.classList.remove(CLASSES.visible);
-  }
-}
-
-/**
- * Toggle dock-active class on an element
- */
-function toggleDockActive(element, shouldAdd = true) {
-  shouldAdd
-    ? element.classList.add(CLASSES.dockActive)
-    : element.classList.remove(CLASSES.dockActive);
-}
-
-/**
- * Update task input border radius
- */
-function updateTaskInputBorder(topLeft = "12px", topRight = "12px") {
-  DOM.taskInput.style.borderBottomLeftRadius = topLeft;
-  DOM.taskInput.style.borderBottomRightRadius = topRight;
-}
-
-/**
- * Retrieve tasks from local storage
- */
-function getTasks() {
-  const tasks = localStorage.getItem("tasks");
-  return tasks ? JSON.parse(tasks) : [];
-}
-
-/**
- * Retrieve lists from local storage
- */
-function getLists() {
-  return JSON.parse(localStorage.getItem("lists")) || DEFAULTS.lists;
-}
-
-/**
- * Save lists to local storage
- */
-function saveLists(lists) {
-  localStorage.setItem("lists", JSON.stringify(lists));
-}
-
-/* ========== DOCK DISPLAY MANAGEMENT ========== */
-
-/**
- * Show the dock and related UI changes
- */
 function showDock() {
   if (!DOM.dock.classList.contains(CLASSES.visible)) {
     DOM.dock.classList.add(CLASSES.visible);
     DOM.addTaskBtn.classList.add(CLASSES.visible);
-    updateTaskInputBorder("0px", "0px");
+    DOM.taskInput.style.borderBottomLeftRadius = "0px";
+    DOM.taskInput.style.borderBottomRightRadius = "0px";
   }
 }
 
-/**
- * Hide the dock and reset UI changes
- */
-function hideDock() {
-  DOM.dock.classList.remove(CLASSES.visible);
-  closeAllDockItems();
-  updateTaskInputBorder();
-}
-
-/**
- * Close all dock interactive elements and reset states
- */
 function closeAllDockItems() {
-  toggleElementVisibility(DOM.priorityDropdown, false);
-  toggleDockActive(DOM.prioritySelector, false);
-  toggleElementVisibility(DOM.tagElement, false);
-  toggleDockActive(DOM.tagBtn, false);
-  toggleElementVisibility(DOM.tagDisplay, false);
-  toggleDockActive(DOM.calendarBtn, false);
-  toggleDockActive(DOM.listBtn, false);
-  toggleElementVisibility(DOM.listDropdown, false);
-  toggleElementVisibility(DOM.listOptions, false);
+  DOM.priorityDropdown.classList.remove(CLASSES.visible);
+  DOM.prioritySelector.classList.remove(CLASSES.dockActive);
+  DOM.tagElement.classList.remove(CLASSES.visible);
+  DOM.tagBtn.classList.remove(CLASSES.dockActive);
+  DOM.calendarBtn.classList.remove(CLASSES.dockActive);
+  DOM.listBtn.classList.remove(CLASSES.dockActive);
+  DOM.listDropdown.classList.remove(CLASSES.visible);
+  DOM.listOptions.classList.remove(CLASSES.visible);
   DOM.newListInput.style.display = "none";
   state.activeDockItem = null;
 }
 
-/**
- * Set an active dock item, highlighting it and closing others
- */
-function setActiveDockItem(itemName, element) {
+function hideDock() {
+  DOM.dock.classList.remove(CLASSES.visible);
   closeAllDockItems();
-  state.activeDockItem = itemName;
-  toggleDockActive(element, true);
+  DOM.taskInput.style.borderBottomLeftRadius = "12px";
+  DOM.taskInput.style.borderBottomRightRadius = "12px";
 }
 
-/* ========== LIST MANAGEMENT ========== */
+function setActiveDockItem(name, element) {
+  closeAllDockItems();
+  state.activeDockItem = name;
+  element.classList.add(CLASSES.dockActive);
+}
 
-/**
- * Initialize default task lists in local storage if not already present
- */
+/* --- Lists Initialization & Rendering --- */
 function initializeDefaultLists() {
   if (localStorage.getItem("listInitialized") !== "true") {
-    saveLists(DEFAULTS.lists);
+    localStorage.setItem("lists", JSON.stringify(DEFAULTS.lists));
     localStorage.setItem("listInitialized", "true");
     state.selectedList = DEFAULTS.defaultList;
-    updateListDisplay(DEFAULTS.defaultList);
+    DOM.listNameDisplay.innerHTML = `<span>${state.selectedList}</span> <span>&#10549;</span>`;
   } else if (!state.selectedList) {
-    const lists = getLists();
+    const lists = JSON.parse(localStorage.getItem("lists") || "[]");
     if (lists.length > 0) {
       state.selectedList = lists[0];
-      updateListDisplay(lists[0]);
+      DOM.listNameDisplay.innerHTML = `<span>${state.selectedList}</span> <span>&#10549;</span>`;
     }
   }
 }
 
-/**
- * Update the list name display
- */
-function updateListDisplay(listName) {
-  DOM.listNameDisplay.innerHTML = `<span>${listName}</span> <span>&#10549;</span>`;
-}
-
-/**
- * Render list options in the dropdown
- */
 function renderLists() {
   DOM.listOptions.innerHTML = "";
-  const lists = getLists();
-
+  const lists = JSON.parse(localStorage.getItem("lists") || "[]");
   lists.forEach((item) => {
-    const listItem = document.createElement("div");
-    listItem.className = CLASSES.listItem;
-    listItem.textContent = item;
-    DOM.listOptions.appendChild(listItem);
-
-    listItem.addEventListener("click", handleListItemClick(item));
+    const div = document.createElement("div");
+    div.className = CLASSES.listItem;
+    div.textContent = item;
+    DOM.listOptions.appendChild(div);
+    div.addEventListener("click", (e) => {
+      e.stopPropagation();
+      state.selectedList = item;
+      DOM.listNameDisplay.innerHTML = `<span>${item}</span> <span>&#10549;</span>`;
+      DOM.listDropdown.classList.remove(CLASSES.visible);
+      DOM.listOptions.classList.remove(CLASSES.visible);
+      DOM.listBtn.classList.remove(CLASSES.dockActive);
+      state.activeDockItem = null;
+    });
   });
 
-  createAndAppendNewListButton();
-}
-
-/**
- * Handle list item click event
- */
-function handleListItemClick(listName) {
-  return (e) => {
-    e.stopPropagation();
-    state.selectedList = listName;
-    updateListDisplay(listName);
-    closeListUI();
-  };
-}
-
-/**
- * Create and append the "New List" button
- */
-function createAndAppendNewListButton() {
   const newListBtn = document.createElement("button");
-  newListBtn.innerHTML = "New List";
-  newListBtn.className = CLASSES.newListBtn;
   newListBtn.id = "newListBtn";
+  newListBtn.className = CLASSES.newListBtn;
+  newListBtn.textContent = "New List";
   DOM.listOptions.appendChild(newListBtn);
-
-  newListBtn.addEventListener("click", handleNewListButtonClick);
-}
-
-/**
- * Handle "New List" button click
- */
-function handleNewListButtonClick(e) {
-  e.stopPropagation();
-  closeListUI();
-  DOM.newListInput.value = "";
-  DOM.newListInput.style.display = "block";
-  DOM.newListInput.focus();
-  state.activeDockItem = null;
-}
-
-/**
- * Close all list-related UI elements
- */
-function closeListUI() {
-  toggleElementVisibility(DOM.listDropdown, false);
-  toggleElementVisibility(DOM.listOptions, false);
-  toggleDockActive(DOM.listBtn, false);
-  state.activeDockItem = null;
-}
-
-/**
- * Render list options in the select dropdown
- */
-function listSelectOptionRender() {
-  const availableLists = getLists();
-  availableLists.forEach((item) => {
-    const listOption = document.createElement("option");
-    listOption.textContent = item;
-    DOM.listSelect.appendChild(listOption);
+  newListBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    DOM.listDropdown.classList.remove(CLASSES.visible);
+    DOM.listOptions.classList.remove(CLASSES.visible);
+    DOM.newListInput.value = "";
+    DOM.newListInput.style.display = "block";
+    DOM.newListInput.focus();
+    DOM.listBtn.classList.remove(CLASSES.dockActive);
+    state.activeDockItem = null;
   });
 }
 
-/* ========== TAG MANAGEMENT ========== */
+initializeDefaultLists();
+renderLists();
 
-/**
- * Display tags in the tag display area
- */
+/* --- Tasks localStorage helpers --- */
+function getTasks() {
+  const t = localStorage.getItem("tasks");
+  return t ? JSON.parse(t) : [];
+}
+
+function getCompletedTasks() {
+  const c = localStorage.getItem("completedTasks");
+  return c ? JSON.parse(c) : [];
+}
+
+function completeTask(taskId) {
+  let tasks = getTasks();
+  const taskIndex = tasks.findIndex(t => t.id === taskId);
+  if (taskIndex !== -1) {
+    const completedTask = tasks.splice(taskIndex, 1)[0];
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+    const completedTasks = getCompletedTasks();
+    completedTasks.push(completedTask);
+    localStorage.setItem("completedTasks", JSON.stringify(completedTasks));
+  }
+}
+
+function uncompleteTask(taskId) {
+  let completedTasks = getCompletedTasks();
+  const taskIndex = completedTasks.findIndex(t => t.id === taskId);
+  if (taskIndex !== -1) {
+    const task = completedTasks.splice(taskIndex, 1)[0];
+    localStorage.setItem("completedTasks", JSON.stringify(completedTasks));
+    const tasks = getTasks();
+    tasks.push(task);
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }
+}
+
+function removeTask(taskId) {
+  let tasks = getTasks();
+  tasks = tasks.filter(t => t.id !== taskId);
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+function addTask() {
+  const name = DOM.taskInput.value.trim();
+  if (!name) return false;
+  const taskObj = { 
+    id: Date.now(),
+    taskName: name,
+    priority: state.currentPriority,
+    dueDate: state.selectedDate,
+    tags: state.selectedTags.slice(),
+    list: state.selectedList,
+    completed: false,
+  };
+  const updated = [...getTasks(), taskObj];
+  localStorage.setItem("tasks", JSON.stringify(updated));
+  return true;
+}
+
+/* --- Tags --- */
 function displayTags() {
-  DOM.tagDisplay.classList.add('visible');
   DOM.tagDisplay.innerHTML = "";
   state.selectedTags.forEach((tag) => {
-    const tagItem = document.createElement("div");
-    const tagText = document.createElement("span");
-    const tagRemoveBtn = document.createElement("span");
+    const item = document.createElement("div");
+    const text = document.createElement("span");
+    const remove = document.createElement("span");
 
-    tagItem.classList.add(CLASSES.tagItem);
-    tagText.textContent = tag;
+    item.classList.add(CLASSES.tagItem);
 
-    tagRemoveBtn.textContent = "✕";
-    tagRemoveBtn.classList.add(CLASSES.tagRemoveBtn);
-    tagRemoveBtn.addEventListener("click", (e) => {
+    text.textContent = tag;
+
+    remove.textContent = "✕";
+    remove.classList.add(CLASSES.tagRemoveBtn);
+
+    remove.addEventListener("click", (e) => {
       e.stopPropagation();
       removeTag(tag);
     });
 
-    tagItem.appendChild(tagText);
-    tagItem.appendChild(tagRemoveBtn);
-    DOM.tagDisplay.appendChild(tagItem);
+    item.appendChild(text);
+    item.appendChild(remove);
+
+    DOM.tagDisplay.appendChild(item);
   });
+  
+  if (state.selectedTags.length > 0) {
+    DOM.tagDisplay.classList.add(CLASSES.visible);
+  } else {
+    DOM.tagDisplay.classList.remove(CLASSES.visible);
+  }
 }
 
-/**
- * Remove a tag from the selected tags
- */
 function removeTag(tag) {
   state.selectedTags = state.selectedTags.filter((t) => t !== tag);
   displayTags();
 }
 
-/* ========== TASK MANAGEMENT ========== */
-
-/**
- * Add a new task to local storage
- */
-function addTask() {
-  const taskObj = {
-    name: DOM.taskInput.value.trim(),
-    priority: state.currentPriority,
-    dueDate: state.selectedDate,
-    tags: state.selectedTags,
-    list: state.selectedList,
-  };
-  const updatedTasks = [...getTasks(), taskObj];
-  localStorage.setItem("tasks", JSON.stringify(updatedTasks));
-}
-
-/**
- * Reset task-related state variables
- */
-function resetTaskState() {
-  DOM.taskInput.value = "";
-  state.selectedDate = null;
-  state.currentPriority = "medium";
-  state.selectedTags = [];
-  state.selectedList = null;
-  displayTags();
-  updatePrioritySelectorIcon("low");
-  updateListDisplay("None");
-}
-
-/**
- * Update the priority selector icon
- */
-function updatePrioritySelectorIcon(priority) {
-  const selectorSvg = DOM.prioritySelector.querySelector(SELECTORS.svgUse);
-  selectorSvg.setAttribute("href", SELECTORS.priorityFlag + priority);
-}
-
-function renderTasks() {}
-
 /* ========== EVENT LISTENERS ========== */
+DOM.taskInput.addEventListener("focus", showDock);
+DOM.taskInput.addEventListener("click", showDock);
 
-/**
- * Initialize all event listeners
- */
-function initializeEventListeners() {
-  // Task input events
-  DOM.taskInput.addEventListener("focus", showDock);
-  DOM.taskInput.addEventListener("click", showDock);
-  DOM.taskInput.addEventListener("keypress", handleTaskInputKeypress);
-
-  // Document click event
-  document.addEventListener("click", handleDocumentClick);
-
-  // Priority selector events
-  DOM.prioritySelector.addEventListener("click", handlePrioritySelectorClick);
-  document.querySelectorAll(`.${CLASSES.priorityOption}`).forEach((option) => {
-    option.addEventListener("click", handlePriorityOptionClick);
-  });
-
-  // Tag events
-  DOM.tagBtn.addEventListener("click", handleTagButtonClick);
-  DOM.tagAddBtn.addEventListener("click", handleTagAddButtonClick);
-
-  // Calendar events
-  DOM.calendarBtn.addEventListener("click", handleCalendarButtonClick);
-
-  // List events
-  DOM.listBtn.addEventListener("click", handleListButtonClick);
-  DOM.listNameDisplay.addEventListener("click", handleListNameDisplayClick);
-
-  // Add task button
-  DOM.addTaskBtn.addEventListener("click", handleAddTaskButtonClick);
-
-  // New list input
-  DOM.newListInput.addEventListener("keypress", handleNewListInputKeypress);
-
-  // Dock click event
-  DOM.dock.addEventListener("click", (e) => e.stopPropagation());
-}
-
-/**
- * Handle task input keypress event
- */
-function handleTaskInputKeypress(e) {
-  if (e.key === "Enter" && !state.activeDockItem) {
-    DOM.addTaskBtn.click();
-  }
-}
-
-/**
- * Handle document click event
- */
-function handleDocumentClick(e) {
+document.addEventListener("click", (e) => {
   if (
     !DOM.taskInput.contains(e.target) &&
     !DOM.dock.contains(e.target) &&
@@ -401,80 +259,89 @@ function handleDocumentClick(e) {
   ) {
     hideDock();
   }
-}
+});
 
-/**
- * Handle priority selector click event
- */
-function handlePrioritySelectorClick(e) {
+/* ========== Dock Item Event Listeners ======== */
+
+// --- Priority Selector ---
+DOM.prioritySelector.addEventListener("click", (e) => {
   e.stopPropagation();
   if (state.activeDockItem === "priority") {
     closeAllDockItems();
   } else {
     setActiveDockItem("priority", DOM.prioritySelector);
-    toggleElementVisibility(DOM.priorityDropdown, true);
+    DOM.priorityDropdown.classList.add(CLASSES.visible);
     DOM.newListInput.style.display = "none";
   }
-}
+});
 
-/**
- * Handle priority option click event
- */
-function handlePriorityOptionClick(e) {
-  e.stopPropagation();
-  state.currentPriority = e.target.classList[1];
-  updatePrioritySelectorIcon(state.currentPriority);
-  closeAllDockItems();
-}
+// Priority Options
+document.querySelectorAll(".priority-option").forEach((option) => {
+  option.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const classes = Array.from(option.classList);
+    const pr = classes.find((c) => ["low", "medium", "high"].includes(c));
+    if (pr) {
+      state.currentPriority = pr;
+      const use = DOM.prioritySelector.querySelector("svg use");
+      if (use) use.setAttribute("href", `${SELECTORS.priorityFlag}${state.currentPriority}`);
+    }
+    closeAllDockItems();
+  });
+});
 
-/**
- * Handle tag button click event
- */
-function handleTagButtonClick(e) {
+// --- Tags ---
+DOM.tagBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   if (state.activeDockItem === "tag") {
     closeAllDockItems();
   } else {
     setActiveDockItem("tag", DOM.tagBtn);
-    toggleElementVisibility(DOM.tagElement, true);
+    DOM.tagElement.classList.add(CLASSES.visible);
     DOM.tagInput.focus();
-    DOM.newListInput.style.display = "none";
   }
-}
+});
 
-/**
- * Handle tag add button click event
- */
-function handleTagAddButtonClick(e) {
+// Tag Add Button
+DOM.tagAddBtn.addEventListener("click", (e) => {
   e.stopPropagation();
-  const tagValue = DOM.tagInput.value.trim();
-  if (
-    tagValue &&
-    !state.selectedTags.includes(tagValue) &&
-    state.selectedTags.length < DEFAULTS.maxTags
-  ) {
-    state.selectedTags.push(tagValue);
+  const v = DOM.tagInput.value.trim();
+  if(state.selectedTags.length >= DEFAULTS.maxTags) {
+    alert(`You can add up to ${DEFAULTS.maxTags} tags only.`);
+    return;
+  }
+  if(v.length > 10) {
+    alert("Tag length cannot exceed 10 characters.");
+    return;
+  }
+  if (v && !state.selectedTags.includes(v)) {
+    state.selectedTags.push(v);
+    console.log(state.selectedTags);
     displayTags();
     DOM.tagInput.value = "";
     DOM.tagBtn.classList.add(CLASSES.active);
   }
   closeAllDockItems();
-}
+});
 
-/**
- * Handle calendar button click event
- */
-function handleCalendarButtonClick(e) {
+
+// Tag Input Enter Key
+DOM.tagInput.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") {
+    DOM.tagAddBtn.click();
+  }
+});
+
+/* --- Calendar / flatpickr --- */
+DOM.calendarBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   DOM.calendarInput.style.display = "none";
-
   if (state.activeDockItem === "calendar") {
     closeAllDockItems();
     if (state.flatpickrInstance) state.flatpickrInstance.close();
     return;
   }
-
-  if (!state.flatpickrInstance) {
+  if (!state.flatpickrInstance && typeof flatpickr !== "undefined") {
     state.flatpickrInstance = flatpickr("#calendarInput", {
       enableTime: true,
       dateFormat: "Y-m-d H:i",
@@ -482,90 +349,227 @@ function handleCalendarButtonClick(e) {
       position: "below",
       positionElement: DOM.calendarBtn,
       onClose: (selectedDates) => {
-        if (selectedDates.length > 0) {
+        if (selectedDates && selectedDates.length > 0) {
           state.selectedDate = selectedDates[0];
         }
         closeAllDockItems();
       },
     });
   }
-
   DOM.newListInput.style.display = "none";
+  DOM.calendarBtn.classList.add(CLASSES.dockActive);
   setActiveDockItem("calendar", DOM.calendarBtn);
-  toggleDockActive(DOM.calendarBtn, true);
-  state.flatpickrInstance.open();
-}
+  if (state.flatpickrInstance) state.flatpickrInstance.open();
+});
 
-/**
- * Handle list button click event
- */
-function handleListButtonClick(e) {
+/* --- Lists UI --- */
+DOM.listBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   DOM.newListInput.style.display = "none";
-
   if (state.activeDockItem === "list") {
     closeAllDockItems();
   } else {
     setActiveDockItem("list", DOM.listBtn);
-    toggleElementVisibility(DOM.listDropdown, true);
-    toggleElementVisibility(DOM.listOptions, true);
+    DOM.listDropdown.classList.add(CLASSES.visible);
+    DOM.listOptions.classList.add(CLASSES.visible);
   }
-}
+});
 
-/**
- * Handle list name display click event
- */
-function handleListNameDisplayClick(e) {
+DOM.listNameDisplay.addEventListener("click", (e) => {
   e.stopPropagation();
   DOM.listOptions.classList.toggle(CLASSES.visible);
-  if (DOM.listOptions.classList.contains(CLASSES.visible)) {
-    DOM.newListInput.style.display = "none";
-  }
-}
+  if (DOM.listOptions.classList.contains(CLASSES.visible)) DOM.newListInput.style.display = "none";
+});
 
-/**
- * Handle add task button click event
- */
-function handleAddTaskButtonClick(e) {
+DOM.newListInput.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") {
+    const newName = DOM.newListInput.value.trim();
+    if (newName) {
+      state.selectedList = newName;
+      let lists = JSON.parse(localStorage.getItem("lists") || "[]");
+      if (!lists.includes(newName)) {
+        lists.push(newName);
+        localStorage.setItem("lists", JSON.stringify(lists));
+      }
+      DOM.listNameDisplay.innerHTML = `<span>${newName}</span> <span>&#10549;</span>`;
+      DOM.newListInput.value = "";
+      DOM.newListInput.style.display = "none";
+      renderLists();
+      DOM.listBtn.classList.add(CLASSES.dockActive);
+    }
+  }
+});
+
+/* --- Add Task Button --- */
+DOM.addTaskBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   if (!DOM.taskInput.value.trim()) {
     alert("Task name cannot be empty.");
     DOM.taskInput.focus();
     return;
   }
-
   addTask();
-  resetTaskState();
+  renderTaskItems();
+  DOM.taskInput.value = "";
+  state.selectedDate = null;
+  state.currentPriority = "medium";
+  state.selectedTags = [];
+  displayTags();
+  state.selectedList = DEFAULTS.defaultList;
   hideDock();
-}
+  const selectorSvg = DOM.prioritySelector.querySelector("svg use");
+  if (selectorSvg) selectorSvg.setAttribute("href", "#flag-low");
+  DOM.listNameDisplay.innerHTML = `<span>${DEFAULTS.defaultList}</span> <span>&#10549;</span>`;
+});
 
-/**
- * Handle new list input keypress event
- */
-function handleNewListInputKeypress(e) {
-  if (e.key === "Enter") {
-    const newListName = DOM.newListInput.value.trim();
-    if (newListName) {
-      state.selectedList = newListName;
-      let lists = getLists();
-      if (!lists.includes(newListName)) {
-        lists.push(newListName);
-        saveLists(lists);
-      }
-
-      updateListDisplay(newListName);
-      DOM.newListInput.value = "";
-      DOM.newListInput.style.display = "none";
-
-      renderLists();
-      toggleDockActive(DOM.listBtn, true);
-    }
+DOM.taskInput.addEventListener("keypress", (e) => {
+  if (e.key === "Enter" && !state.activeDockItem) {
+    DOM.addTaskBtn.click();
   }
+});
+
+DOM.dock.addEventListener("click", (e) => e.stopPropagation());
+
+
+/* ========== Task Rendering and management ========== */
+
+const navElements = document.querySelectorAll(".navbar > ul > li");
+navElements.forEach((el) => {
+  el.addEventListener("click", (e) => {
+    navElements.forEach((ne) => ne.classList.remove(CLASSES.active));
+    el.classList.add(CLASSES.active);
+  });
+});
+
+
+function createTaskCard(task) {
+  const card = document.createElement("div");
+  card.className = "task-card";
+
+  // Checkbox
+  const checkBox = document.createElement("input");
+  checkBox.type = "checkbox";
+  checkBox.className = "task-checkbox";
+
+  checkBox.addEventListener('', () => {
+    
+  const nameContainer = document.createElement("span");
+  nameContainer.className = "task-name-container";
+
+  const name = document.createElement("span");
+  name.className = "task-name";
+  name.textContent = task.taskName;
+
+  const tagsContainer = document.createElement("span");
+  tagsContainer.className = "task-tags-container";
+  if (task.tags && task.tags.length > 0) {
+    task.tags.forEach((tag) => {
+      const tagSpan = document.createElement("span");
+      tagSpan.className = "task-tag";
+      tagSpan.textContent = `#${tag}`;
+      tagsContainer.appendChild(tagSpan);
+    });
+  }
+
+  nameContainer.appendChild(name);
+  nameContainer.appendChild(tagsContainer);
+
+  // Priority and List (metadata)
+  const detailsContainer = document.createElement("div");
+  detailsContainer.className = "task-metadata-container";
+
+  const prioritySpan = document.createElement("span");
+  prioritySpan.className = `task-priority priority-${task.priority ? task.priority.toLowerCase() : 'medium'}`;
+  prioritySpan.textContent = task.priority || "Medium";
+
+  const listSpan = document.createElement("span");
+  listSpan.className = "task-list";
+  listSpan.textContent = task.list || "None";
+
+  detailsContainer.appendChild(prioritySpan);
+  detailsContainer.appendChild(listSpan);
+
+  // Due date section
+  const dueDateContainer = document.createElement("div");
+  dueDateContainer.className = "task-due-date-container";
+
+  const dueDateLabel = document.createElement("span");
+  dueDateLabel.className = "task-due-date";
+  if (task.dueDate) {
+    const dateObj = new Date(task.dueDate);
+    const formattedDate = dateObj.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+    dueDateLabel.textContent = formattedDate;
+  } else {
+    dueDateLabel.textContent = "-";
+  }
+
+  dueDateContainer.appendChild(dueDateLabel);
+
+  // Assemble the card in a single row
+  card.appendChild(checkBox);
+  
+    const topSection = document.createElement("div");
+    topSection.className = "task-top-section";
+    topSection.appendChild(nameContainer);
+    topSection.appendChild(detailsContainer);
+  
+  card.appendChild(topSection);
+  card.appendChild(dueDateContainer);
+
+  // Append to the display window
+  const taskDisplayWindow = document.getElementById("taskDisplayWindow");
+  if (taskDisplayWindow) {
+    taskDisplayWindow.appendChild(card);
+  }
+
+  return card;
 }
 
-/* ========== INITIALIZATION ========== */
 
-initializeDefaultLists();
-renderLists();
-listSelectOptionRender();
-initializeEventListeners();
+function renderTaskItems(filterType = "all", filterValue = null) {
+  const taskDisplayWindow = document.getElementById("taskDisplayWindow");
+  taskDisplayWindow.innerHTML = "";
+  let tasks = getTasks();
+
+  if (filterType === 'today') {
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    tasks = tasks.filter((task) => task.dueDate && task.dueDate.substring(0, 10) === todayStr);
+  } 
+  
+  else if (filterType === 'week') {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const weekDates = [];
+    for (let i = 0; i < 7 - dayOfWeek; i++) {
+      let newDate = new Date();
+      newDate.setDate(today.getDate() + i);
+      const dateStr = `${newDate.getFullYear()}-${String(newDate.getMonth() + 1).padStart(2, '0')}-${String(newDate.getDate()).padStart(2, '0')}`;
+      weekDates.push(dateStr);
+    }
+    tasks = tasks.filter((task) => task.dueDate && weekDates.includes(task.dueDate.substring(0, 10)));
+  }
+    
+  
+  else if (filterType === 'priority' && filterValue) {
+    tasks = tasks.filter((task) => task.priority.toLowerCase() === filterValue.toLowerCase());
+  } 
+  
+  else if (filterType === 'list' && filterValue) {
+    tasks = tasks.filter((task) => task.list === filterValue);
+  } 
+  
+  else if (filterType === 'tag' && filterValue) {
+    tasks = tasks.filter((task) => task.tags.includes(filterValue));
+  }
+
+  tasks.forEach((task) => {
+    createTaskCard(task);
+  });
+}
+
+// Initial render
+renderTaskItems();
