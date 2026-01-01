@@ -22,6 +22,7 @@ const DOM = {
   listSelect: document.getElementById("listSelect"),
   navItems: document.querySelectorAll(".navbar > ul > li"),
   taskToolbar: document.querySelector(".task-toolbar"),
+  searchInput: document.getElementById("searchInput"),
 };
 
 /* ========== STATE MANAGEMENT ========== */
@@ -430,14 +431,43 @@ DOM.taskInput.addEventListener("keypress", (e) => {
 
 DOM.dock.addEventListener("click", (e) => e.stopPropagation());
 
+DOM.searchInput.addEventListener("input", (e) => {
+
+  const searchVal = e.target.value.trim().toLowerCase();
+  const allTasks = getTasks();
+  const filteredTasks = allTasks.filter((task) =>
+    task.taskName.toLowerCase().includes(searchVal) ||
+    (task.tags && task.tags.some(tag => tag.toLowerCase().includes(searchVal))) ||
+    (task.list && task.list.toLowerCase().includes(searchVal))
+  );
+  const taskDisplayWindow = document.getElementById("taskDisplayWindow"); 
+  taskDisplayWindow.innerHTML = "";
+  if (filteredTasks.length === 0) {
+    taskDisplayWindow.innerHTML = '<div class="empty-state-placeholder">No tasks found</div>';
+  } else {
+    filteredTasks.forEach((task) => {
+      createTaskCard(task);
+    });
+  }
+});
 
 /* ========== Task Rendering and management ========== */
 
 const navElements = document.querySelectorAll(".navbar > ul > li");
+function mapNavTextToFilter(text) {
+  const t = text.trim().toLowerCase();
+  if (t.includes('today')) return 'today';
+  if (t.includes('week')) return 'week';
+  if (t.includes('completed')) return 'completed';
+  return 'all';
+}
+
 navElements.forEach((el) => {
   el.addEventListener("click", (e) => {
     navElements.forEach((ne) => ne.classList.remove(CLASSES.active));
     el.classList.add(CLASSES.active);
+    const filter = mapNavTextToFilter(el.textContent || el.innerText || 'All');
+    renderTaskItems(filter);
   });
 });
 
@@ -450,9 +480,21 @@ function createTaskCard(task) {
   const checkBox = document.createElement("input");
   checkBox.type = "checkbox";
   checkBox.className = "task-checkbox";
+  checkBox.checked = !!task.completed;
 
-  checkBox.addEventListener('', () => {
-    
+  checkBox.addEventListener('change', () => {
+    const all = getTasks();
+    const idx = all.findIndex((t) => t.id === task.id);
+    if (idx !== -1) {
+      all[idx].completed = checkBox.checked;
+      localStorage.setItem('tasks', JSON.stringify(all));
+      // re-render current view so completed tasks disappear/appear appropriately
+      const activeNav = document.querySelector('.navbar > ul > li.' + CLASSES.active) || document.querySelector('.navbar > ul > li.active');
+      const filter = activeNav ? mapNavTextToFilter(activeNav.textContent || activeNav.innerText) : 'all';
+      renderTaskItems(filter);
+    }
+  });
+
   const nameContainer = document.createElement("span");
   nameContainer.className = "task-name-container";
 
@@ -532,43 +574,50 @@ function createTaskCard(task) {
 function renderTaskItems(filterType = "all", filterValue = null) {
   const taskDisplayWindow = document.getElementById("taskDisplayWindow");
   taskDisplayWindow.innerHTML = "";
-  let tasks = getTasks();
+  const allTasks = getTasks();
 
+  // start with full list
+  let tasks = allTasks.slice();
+
+  // apply filter-specific narrowing
   if (filterType === 'today') {
     const today = new Date();
     const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     tasks = tasks.filter((task) => task.dueDate && task.dueDate.substring(0, 10) === todayStr);
-  } 
-  
-  else if (filterType === 'week') {
+  } else if (filterType === 'week') {
     const today = new Date();
-    const dayOfWeek = today.getDay();
     const weekDates = [];
-    for (let i = 0; i < 7 - dayOfWeek; i++) {
-      let newDate = new Date();
+    for (let i = 0; i < 7; i++) {
+      const newDate = new Date();
       newDate.setDate(today.getDate() + i);
       const dateStr = `${newDate.getFullYear()}-${String(newDate.getMonth() + 1).padStart(2, '0')}-${String(newDate.getDate()).padStart(2, '0')}`;
       weekDates.push(dateStr);
     }
     tasks = tasks.filter((task) => task.dueDate && weekDates.includes(task.dueDate.substring(0, 10)));
-  }
-    
-  
-  else if (filterType === 'priority' && filterValue) {
-    tasks = tasks.filter((task) => task.priority.toLowerCase() === filterValue.toLowerCase());
-  } 
-  
-  else if (filterType === 'list' && filterValue) {
+  } else if (filterType === 'priority' && filterValue) {
+    tasks = tasks.filter((task) => task.priority && task.priority.toLowerCase() === filterValue.toLowerCase());
+  } else if (filterType === 'list' && filterValue) {
     tasks = tasks.filter((task) => task.list === filterValue);
-  } 
-  
-  else if (filterType === 'tag' && filterValue) {
-    tasks = tasks.filter((task) => task.tags.includes(filterValue));
+  } else if (filterType === 'tag' && filterValue) {
+    tasks = tasks.filter((task) => task.tags && task.tags.includes(filterValue));
   }
 
-  tasks.forEach((task) => {
-    createTaskCard(task);
-  });
+  // Completed vs not completed handling:
+  if (filterType === 'completed') {
+    tasks = tasks.filter((task) => task.completed === true);
+  } else {
+    // for 'all', 'today', 'week', etc. show only non-completed tasks
+    tasks = tasks.filter((task) => !task.completed);
+  }
+
+  // render
+  if (tasks.length === 0) {
+    taskDisplayWindow.innerHTML = '<div class="empty-state-placeholder">No tasks found</div>';
+  } else {
+    tasks.forEach((task) => {
+      createTaskCard(task);
+    });
+  }
 }
 
 // Initial render
